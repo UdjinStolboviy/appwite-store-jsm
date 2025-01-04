@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminClient, createSessionClient } from "@/lib/appwrite";
+import { createAdminClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { Query, ID } from "node-appwrite";
 import { parseStringify } from "@/lib/utils";
@@ -77,10 +77,19 @@ export const verifySecret = async ({
 }) => {
   try {
     const { account } = await createAdminClient();
-
+    console.log("--------3333----------", accountId, password);
     const session = await account.createSession(accountId, password);
 
+    console.log("------------------", session);
+
     (await cookies()).set("appwrite-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
+
+    (await cookies()).set("userId", accountId, {
       path: "/",
       httpOnly: true,
       sameSite: "strict",
@@ -95,14 +104,16 @@ export const verifySecret = async ({
 
 export const getCurrentUser = async () => {
   try {
-    const { databases, account } = await createSessionClient();
+    const { databases, account } = await createAdminClient();
 
-    const result = await account.get();
+    // const result = await account.get();
+    const userId = (await cookies()).get("userId");
+    console.log("-----account---", userId);
 
     const user = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.usersCollectionId,
-      [Query.equal("accountId", result.$id)],
+      [Query.equal("accountId", userId?.value)],
     );
 
     if (user.total <= 0) return null;
@@ -114,11 +125,12 @@ export const getCurrentUser = async () => {
 };
 
 export const signOutUser = async () => {
-  const { account } = await createSessionClient();
+  const { account } = await createAdminClient();
 
   try {
     await account.deleteSession("current");
     (await cookies()).delete("appwrite-session");
+    (await cookies()).delete("userId");
   } catch (error) {
     handleError(error, "Failed to sign out user");
   } finally {
@@ -130,7 +142,9 @@ export const signInUser = async ({ email }: { email: string }) => {
   try {
     const existingUser = await getUserByEmail(email);
 
-    // User exists, send OTP
+    console.log("-----existingUser---", existingUser);
+
+    // not corect accountId
     if (existingUser) {
       await sendEmailOTP({ email });
       return parseStringify({ accountId: existingUser.accountId });
