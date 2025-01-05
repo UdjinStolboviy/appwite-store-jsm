@@ -108,18 +108,19 @@ export const getCurrentUser = async () => {
 
     // const result = await account.get();
     const userId = (await cookies()).get("userId");
+    console.log("-------", userId);
+    if (userId?.value) {
+      const user = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.usersCollectionId,
+        [Query.equal("accountId", userId?.value)],
+      );
+      if (user.total <= 0) {
+        return null;
+      }
 
-    const user = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.usersCollectionId,
-      [Query.equal("accountId", userId?.value)],
-    );
-
-    if (user.total <= 0) {
-      return null;
+      return parseStringify(user.documents[0]);
     }
-
-    return parseStringify(user.documents[0]);
   } catch (error) {
     console.log(error);
   }
