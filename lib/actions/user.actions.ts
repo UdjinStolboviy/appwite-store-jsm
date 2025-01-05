@@ -47,8 +47,9 @@ export const createAccount = async ({
   const existingUser = await getUserByEmail(email);
 
   const accountId = await sendEmailOTP({ email });
-  if (!accountId) throw new Error("Failed to send an OTP");
-
+  if (!accountId) {
+    throw new Error("Failed to send an OTP");
+  }
   if (!existingUser) {
     const { databases } = await createAdminClient();
 
@@ -77,7 +78,6 @@ export const verifySecret = async ({
 }) => {
   try {
     const { account } = await createAdminClient();
-    console.log("--------3333----------", accountId, password);
     const session = await account.createSession(accountId, password);
 
     console.log("------------------", session);
@@ -108,7 +108,6 @@ export const getCurrentUser = async () => {
 
     // const result = await account.get();
     const userId = (await cookies()).get("userId");
-    console.log("-----account---", userId);
 
     const user = await databases.listDocuments(
       appwriteConfig.databaseId,
@@ -116,7 +115,9 @@ export const getCurrentUser = async () => {
       [Query.equal("accountId", userId?.value)],
     );
 
-    if (user.total <= 0) return null;
+    if (user.total <= 0) {
+      return null;
+    }
 
     return parseStringify(user.documents[0]);
   } catch (error) {
@@ -141,8 +142,6 @@ export const signOutUser = async () => {
 export const signInUser = async ({ email }: { email: string }) => {
   try {
     const existingUser = await getUserByEmail(email);
-
-    console.log("-----existingUser---", existingUser);
 
     // not corect accountId
     if (existingUser) {
