@@ -4,7 +4,16 @@ import { createAdminClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { Query, ID } from "node-appwrite";
 import { parseStringify } from "@/lib/utils";
+
 import { cookies } from "next/headers";
+import {
+  getCookie,
+  getCookies,
+  setCookie,
+  deleteCookie,
+  hasCookie,
+} from "cookies-next/server";
+
 import { avatarPlaceholderUrl } from "@/constants";
 import { redirect } from "next/navigation";
 
@@ -81,20 +90,15 @@ export const verifySecret = async ({
     const session = await account.createSession(accountId, password);
 
     console.log("------------------", session);
+    await setCookie("appwrite-session", session.secret, { cookies });
+    await setCookie("userId", accountId, { cookies });
 
-    (await cookies()).set("appwrite-session", session.secret, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "strict",
-      secure: true,
-    });
-
-    (await cookies()).set("userId", accountId, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "strict",
-      secure: true,
-    });
+    // (await cookies()).set("userId", accountId, {
+    //   path: "/",
+    //   httpOnly: true,
+    //   sameSite: "strict",
+    //   secure: true,
+    // });
 
     return parseStringify({ sessionId: session.$id });
   } catch (error) {
@@ -107,13 +111,15 @@ export const getCurrentUser = async () => {
     const { databases, account } = await createAdminClient();
 
     // const result = await account.get();
-    const userId = (await cookies()).get("userId");
+    // const userId = (await cookies()).get("userId");
+
+    const userId = await getCookie("userId", { cookies });
     console.log("-------", userId);
-    if (userId?.value) {
+    if (userId) {
       const user = await databases.listDocuments(
         appwriteConfig.databaseId,
         appwriteConfig.usersCollectionId,
-        [Query.equal("accountId", userId?.value)],
+        [Query.equal("accountId", userId)],
       );
       if (user.total <= 0) {
         return null;
@@ -131,8 +137,9 @@ export const signOutUser = async () => {
 
   try {
     await account.deleteSession("current");
-    (await cookies()).delete("appwrite-session");
-    (await cookies()).delete("userId");
+    await deleteCookie("appwrite-session", { cookies });
+    await deleteCookie("userId", { cookies });
+    //(await cookies()).delete("userId");
   } catch (error) {
     handleError(error, "Failed to sign out user");
   } finally {
