@@ -75,9 +75,15 @@ const createQueries = (
     ]),
   ];
 
-  if (types.length > 0) queries.push(Query.equal("type", types));
-  if (searchText) queries.push(Query.contains("name", searchText));
-  if (limit) queries.push(Query.limit(limit));
+  if (types.length > 0) {
+    queries.push(Query.equal("type", types));
+  }
+  if (searchText) {
+    queries.push(Query.contains("name", searchText));
+  }
+  if (limit) {
+    queries.push(Query.limit(limit));
+  }
 
   if (sort) {
     const [sortBy, orderBy] = sort.split("-");
@@ -101,7 +107,9 @@ export const getFiles = async ({
   try {
     const currentUser = await getCurrentUser();
 
-    if (!currentUser) throw new Error("User not found");
+    if (!currentUser) {
+      throw new Error("User not found");
+    }
 
     const queries = createQueries(currentUser, types, searchText, sort, limit);
 
@@ -198,7 +206,9 @@ export async function getTotalSpaceUsed() {
   try {
     const { databases } = await createAdminClient();
     const currentUser = await getCurrentUser();
-    if (!currentUser) throw new Error("User is not authenticated.");
+    if (!currentUser) {
+      throw new Error("User is not authenticated.");
+    }
 
     const files = await databases.listDocuments(
       appwriteConfig.databaseId,

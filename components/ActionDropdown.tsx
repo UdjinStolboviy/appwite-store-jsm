@@ -129,6 +129,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
                   width={24}
                   height={24}
                   className="animate-spin"
+                  unoptimized
                 />
               )}
             </Button>
@@ -147,6 +148,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
             alt="dots"
             width={34}
             height={34}
+            unoptimized
           />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
@@ -181,6 +183,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
                     alt={actionItem.label}
                     width={30}
                     height={30}
+                    unoptimized
                   />
                   {actionItem.label}
                 </Link>
@@ -191,6 +194,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
                     alt={actionItem.label}
                     width={30}
                     height={30}
+                    unoptimized
                   />
                   {actionItem.label}
                 </div>
