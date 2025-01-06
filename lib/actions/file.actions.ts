@@ -29,7 +29,7 @@ export const uploadFile = async ({
       ID.unique(),
       inputFile,
     );
-
+    console.log("------", bucketFile);
     const fileDocument = {
       type: getFileType(bucketFile.name).type,
       name: bucketFile.name,
@@ -50,6 +50,7 @@ export const uploadFile = async ({
         fileDocument,
       )
       .catch(async (error: unknown) => {
+        console.log("------", "Failed to create file document");
         await storage.deleteFile(appwriteConfig.bucketId, bucketFile.$id);
         handleError(error, "Failed to create file document");
       });
